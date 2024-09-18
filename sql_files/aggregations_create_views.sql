@@ -25,15 +25,15 @@ AS
 
 CREATE OR REPLACE VIEW sales_rating_by_voivodeship
 AS
+WITH ReviewsTotal AS (SELECT customer_id, AVG(rating) as avg_rating FROM product_reviews GROUP BY customer_id)
     SELECT c.voivodeship,
            SUM(oi.sum_price) as total_sales,
            SUM(oi.quantity) as total_volume,
-           TRUNC(AVG(pr.rating),2) as avg_rating
+           TRUNC(AVG(rt.avg_rating),2) as avg_rating
     FROM customers c
     INNER JOIN orders o ON c.customer_id = o.customer_id
     INNER JOIN order_items oi ON o.order_id = oi.order_id
-    INNER JOIN product_reviews pr ON c.customer_id = pr.customer_id
-    WHERE o.status_number = 4
+    LEFT JOIN ReviewsTotal rt ON c.customer_id = rt.customer_id
     GROUP BY c.voivodeship
     ORDER BY total_sales DESC;
 
